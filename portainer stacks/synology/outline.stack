@@ -1,3 +1,8 @@
+# This is a stack file for Outline knowledge management
+# This stack has been created based off the docker compose that was provided, and tweaked to suit synology folder structures and portainer
+# Change all the parts to your liking where I have marked Change this as a comment
+# Use this at your own risk. 
+
 version: "3.2"
 
 services:
@@ -36,9 +41,9 @@ services:
       timeout: 20s
       retries: 3
     environment:
-      POSTGRES_USER: 'user'
-      POSTGRES_PASSWORD: 'pass'
-      POSTGRES_DB: 'outline'
+      POSTGRES_USER: 'user' #Change this
+      POSTGRES_PASSWORD: 'pass' #Change this
+      POSTGRES_DB: 'outline' #Change this
 
   storage:
     image: minio/minio
