@@ -1,12 +1,12 @@
 # This is a stack file for Outline knowledge management
 # This stack has been created based off the docker compose that was provided, and tweaked to suit synology folder structures and portainer
 # Change all the parts to your liking where I have marked Change this as a comment
+# All ports have been changed to avoid conflicts
 # Use this at your own risk. 
 
 version: "3.2"
 
 services:
-
   outline:
     image: docker.getoutline.com/outlinewiki/outline:latest
     ports:
@@ -15,13 +15,19 @@ services:
       - postgres
       - redis
       - storage
+    environment:
+      SECRET_KEY: "" # Change this : use openssl rand -hex 32 in a linux terminal
+      UTILS_SECRET: "" # Change this: Run the same command to generate this as well. 
+      DATABASE_URL: "" # Change this
+      REDIS_URL: "" # Change this
+      URL: "" # Change this
 
   redis:
     image: redis
     ports:
       - "6379:6379"
     volumes:
-      - /volume1/docker/outline/redis:/redis.conf
+      - /volume1/docker/outline/redis/redis.conf:/redis.conf
     command: ["redis-server", "/redis.conf"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -32,7 +38,7 @@ services:
   postgres:
     image: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - /volume1/docker/outline/postgress:/var/lib/postgresql/data
     healthcheck:
@@ -41,20 +47,20 @@ services:
       timeout: 20s
       retries: 3
     environment:
-      POSTGRES_USER: 'user' #Change this
-      POSTGRES_PASSWORD: 'pass' #Change this
-      POSTGRES_DB: 'outline' #Change this
+      POSTGRES_USER: 'outlineuser'
+      POSTGRES_PASSWORD: 'HzNCaNF%f6gak!8Xe%%'
+      POSTGRES_DB: 'outline'
 
   storage:
     image: minio/minio
     ports:
-      - "9000:9000"
+      - "9002:9000"
     entrypoint: sh
-    command: -c 'minio server'
+    command: -c 'minio server /data'
     volumes:
       - /volume1/docker/outline/storage:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:9002/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -62,8 +68,8 @@ services:
   https-portal:
     image: steveltn/https-portal
     ports:
-      - '80:80'
-      - '443:443'
+      - '83:80'
+      - '447:443'
     links:
       - outline
       - storage
@@ -79,8 +85,3 @@ services:
       DOMAINS: 'docs.mycompany.com -> http://outline:3000'
       STAGE: 'production'
       WEBSOCKET: 'true'
-
-volumes:
-  https-portal-data: /volume1/docker/outline/https-portal-data
-  storage-data: /volume1/docker/outline/storage
-  database-data: /volume1/docker/outline/postgress
