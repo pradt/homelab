@@ -10,17 +10,86 @@ services:
   outline:
     image: docker.getoutline.com/outlinewiki/outline:latest
     ports:
-      - "3000:3000"
+      - "3123:3000"
     depends_on:
       - postgres
       - redis
       - storage
     environment:
-      SECRET_KEY: "" # Change this : use openssl rand -hex 32 in a linux terminal
+      SECRET_KEY: "" # Change this: use openssl rand -hex 32 in a linux terminal
       UTILS_SECRET: "" # Change this: Run the same command to generate this as well. 
-      DATABASE_URL: "" # Change this
-      REDIS_URL: "" # Change this
-      URL: "" # Change this
+      DATABASE_URL: "postgres://<usermame>:<pass>@postgres:5432/outline"Change this: this is the database url, add your username and password
+      REDIS_URL: "redis://redis:6379" # Using redis instead of the ip resulted in error. Redis conf, bind is set to 0.0.0.0 instead of 127.0.0.1 -::1
+      URL: "" #change this so that it is https://xyz.yourdomain.com
+      DATA_DIR: '/data'
+
+      #Authentication Services only 1 is required uncomment the variables that you want to use
+                             # ---------
+      #Google Authentication
+      #---------------------
+      #GOOGLE_CLIENT_ID: 
+      #GOOGLE_CLIENT_SECRET: 
+      #Azure Authentication
+      #--------------------
+      #AZURE_CLIENT_ID: your_azure_client_id
+      #AZURE_CLIENT_SECRET: your_azure_client_secret
+      #AZURE_RESOURCE_APP_ID: your_azure_resource_app_id
+
+      #OIDC
+      #----
+      #OIDC_CLIENT_ID:
+      #OIDC_CLIENT_SECRET:
+      #OIDC_AUTH_URI:
+      #OIDC_TOKEN_URI:
+      #OIDC_USERINFO_URI:
+      #OIDC_USERNAME_CLAIM: preferred_username
+      #OIDC_DISPLAY_NAME: OpenID Connect
+      #OIDC_SCOPES: openid profile email
+
+      #Optional 
+      #SSL
+      #---
+      #SSL_KEY:
+      #SSL_CERT:
+
+      #CDN
+      #CDN_URL:
+
+      #HTTPS 
+      #FORCE_HTTPS=true
+
+      #Anonymous Updates
+      #ENABLE_UPDATES: true
+
+      #WEB_CONCURRENCY:1
+      #MAXIMUM_IMPORT_SIZE:5120000
+      #DEBUG=http
+      #LOG_LEVEL=info
+
+      #SLACK_VERIFICATION_TOKEN=your_token
+      #SLACK_APP_ID=A0XXXXXXX
+      #SLACK_MESSAGE_ACTIONS=true
+      
+      #GOOGLE_ANALYTICS_ID=
+      #SENTRY_DSN=
+      #SENTRY_TUNNEL=
+
+      #SMTP_HOST=
+      #SMTP_PORT=
+      #SMTP_USERNAME=
+      #SMTP_PASSWORD=
+      #SMTP_FROM_EMAIL=hello@example.com
+      #SMTP_REPLY_EMAIL=hello@example.com
+      #SMTP_TLS_CIPHERS=
+      #SMTP_SECURE=true
+
+      #DEFAULT_LANGUAGE: en_US
+      #RATE_LIMITER_ENABLED=true
+
+      #RATE_LIMITER_REQUESTS=1000
+      #RATE_LIMITER_DURATION_WINDOW=60
+      PGSSLMODE: disable #This is to disable SSL mode, otherwise it will crash and exit when it starts. 
+
 
   redis:
     image: redis
@@ -35,10 +104,12 @@ services:
       timeout: 30s
       retries: 3
 
+##You don't need this if you are already running postgress, setup a username and password if required
+
   postgres:
     image: postgres
     ports:
-      - "5433:5432"
+      - "5437:5432"
     volumes:
       - /volume1/docker/outline/postgress:/var/lib/postgresql/data
     healthcheck:
@@ -47,9 +118,9 @@ services:
       timeout: 20s
       retries: 3
     environment:
-      POSTGRES_USER: 'outlineuser'
-      POSTGRES_PASSWORD: 'HzNCaNF%f6gak!8Xe%%'
-      POSTGRES_DB: 'outline'
+      POSTGRES_USER: '' #Change this: Add a administrator username
+      POSTGRES_PASSWORD: '' #Change this: Add a administrator password 
+      POSTGRES_DB: 'outline' #Change this if required for a database
 
   storage:
     image: minio/minio
@@ -65,6 +136,7 @@ services:
       timeout: 20s
       retries: 3
 
+## You don't need this if you are using cloudflare tunnels
   https-portal:
     image: steveltn/https-portal
     ports:
