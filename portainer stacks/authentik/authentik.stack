@@ -1,0 +1,87 @@
+# The following stack is what i use for authentik 
+# Authentik needs 4 containers, the server, the worker, postgres, redis
+# In this case only 3 containers are there, since postgres is centralised and not within this stack
+# If you want to add it within the stack, just use another container and add a dependency to the container for the server and the worker. If you need help, leave a comment and I'll add it. 
+
+#POSTGRES SETUP 
+#--------------
+#1. Setup a new user role 
+#2. Setup a password 
+#3. Create a database and assign the user to the database 
+# Here is the psql command to do this 
+# CREATE ROLE <username> WITH LOGIN PASSWORD <password>;
+# ALTER DATABASE <database> OWNER TO <username>;
+
+# Setup directories 
+#------------------
+# I'm using binding so I created the following directories, since docker runs as root and I'm running alpine linux i had to "su -" first and created these as root.
+# mkdir -p /docker/authentik/authentik-data
+# mkdir -p /docker/authentik/media
+# mkdir -p /docker/authentik/custom-templates
+
+#Setup Redis.conf 
+# Download the redis conf for your version of the redis, and store it in the specific path and expose it as a binding see below. 
+
+#------------------------------------------------------------------
+
+version: '3.8'
+
+services:
+  authentik-server:
+    image: beryju/authentik
+    restart: unless-stopped
+    command: server
+    ports:
+      - "9001:9000" #Change this: PORT
+      - "9444:9443" #Change this: SSL PORT
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: "<IP>" #Change This: The IP Address or hostname of postgress
+      AUTHENTIK_POSTGRESQL__PORT: "<PORT>" #Change This: The port 
+      AUTHENTIK_POSTGRESQL__DATABASE: "<DATABASE>" #Change this: the database
+      AUTHENTIK_POSTGRESQL__USER: "<USER>" #Change this: the user 
+      AUTHENTIK_POSTGRESQL__PASSWORD: "<PASSWORD>" #Change this: the password
+      AUTHENTIK_REDIS__HOST: "<REDISIP>" #Change this: The containers IP Address 
+      AUTHENTIK_SECRET_KEY: "<SECRET STRING>" #Change this: A Secret - generate your string at https://passwordsgenerator.net/
+    volumes:
+      - /docker/authentik/authentik-data:/data #Probably don't need this, I added this as a habit
+      - /docker/authentik/media:/media #Change this if required see above about directories
+      - /docker/authentik/custom-templates:/templates #Change this if required, see above about directories
+    depends_on:
+      - authentik-redis
+
+  authentik-redis:
+    image: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - /docker/authentik/redis-data/redis.conf:/redis.conf #Change this if required see above about redis.conf
+    command: ["redis-server", "/redis.conf"]
+  
+  authentik-worker:
+    image: beryju/authentik
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: "<IP>" #Change This: The IP Address or hostname of postgress
+      AUTHENTIK_POSTGRESQL__PORT: "<PORT>" #Change This: The port 
+      AUTHENTIK_POSTGRESQL__DATABASE: "<DATABASE>" #Change this: the database
+      AUTHENTIK_POSTGRESQL__USER: "<USER>" #Change this: the user 
+      AUTHENTIK_POSTGRESQL__PASSWORD: "<PASSWORD>" #Change this: the password
+      AUTHENTIK_REDIS__HOST: "<REDISIP>" #Change this: The containers IP Address 
+      AUTHENTIK_SECRET_KEY: "<SECRET STRING>" #Change this: A Secret - generate your string at https://passwordsgenerator.net/ this must match the server
+    # `user: root` and the docker socket volume are optional.
+    # See more for the docker socket integration here:
+    # https://goauthentik.io/docs/outposts/integrations/docker
+    # Removing `user: root` also prevents the worker from fixing the permissions
+    # on the mounted folders, so when removing this make sure the folders have the correct UID/GID
+    # (1000:1000 by default)
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /docker/authentik/media:/media #Change this if required see above about directories
+      - /docker/authentik/certs:/certs #Change this if required see above about directories
+      - /docker/authentik/custom-templates:/templates #Change this if required see above about directories
+    
+    depends_on:
+      - authentik-redis
