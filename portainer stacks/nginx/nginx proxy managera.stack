@@ -1,0 +1,18 @@
+version: '3'
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'    # Public HTTP Port
+      - '81:81'    # Admin Web Port
+      - '443:443'  # Public HTTPS Port
+    environment:
+      DB_MYSQL_HOST: "your-database-host"  # Replace with your database host
+      DB_MYSQL_PORT: your-database-port    # Replace with your database port, typically 3306
+      DB_MYSQL_USER: "your-database-user"  # Replace with your database username
+      DB_MYSQL_PASSWORD: "your-database-password" # Replace with your database password
+      DB_MYSQL_NAME: "your-database-name"  # Replace with your database name
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
