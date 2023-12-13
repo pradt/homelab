@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: your_database   # Replace with your database name
+      POSTGRES_USER: your_user     # Replace with your database user
+      POSTGRES_PASSWORD: your_password # Replace with your database password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com     # Replace with your pgAdmin login email
+      PGADMIN_DEFAULT_PASSWORD: admin            # Replace with your pgAdmin password
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
