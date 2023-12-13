@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: your_database   # Replace with your database name
+      POSTGRES_USER: your_user     # Replace with your database user
+      POSTGRES_PASSWORD: your_password # Replace with your database password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    restart: unless-stopped
+    environment:
+      CB_LOG_LEVEL: debug  # Optional: Set log level
+    ports:
+      - "8978:8978"  # Default CloudBeaver web port
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
