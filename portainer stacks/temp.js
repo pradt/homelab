@@ -1,13 +1,4 @@
-/** @license ESUIT
- * COPYRIGHT (C) 2023 ESUIT. ALL RIGHTS RESERVED.
- *
- * This code is the intellectual property of ESUIT and is protected by
- * copyright law. Any unauthorized use, copying or reproduction of this
- * code without the expressed written permission of ESUIT is strictly
- * prohibited.
- *
- * For more information, please visit https://esuit.dev/.
- */
+
 (function() {
     function $e(U, Z) {
         function ke() {
